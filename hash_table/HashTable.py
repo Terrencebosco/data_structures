@@ -6,6 +6,18 @@ function is the ascii values (http://www.asciitable.com/).
 so for example "march 6" we add the ascii values addes up to 609, we can take the mod
 of 609 and get the value 9 (609 % 10 = 9) then we can store the value of
 "march 6" at position 9
+
+hash table pt.2
+collision handling..
+collision occures when multiple keys have the same index so we have multiple values
+for the same key. the two keys collide to the same index.
+
+one way of handling this is by "chaining". so if a key index has multiple values
+assocciated with it, its value is a list with a key value pair for each element.
+O(n). we have to linearly search these subs list.
+
+linear probing:
+we find the spot of collision we just move to the next free element.
 """
 
 ### as of now class doesnt not handle collision
@@ -24,8 +36,10 @@ def get_hash(key):
 # hash table class
 class HashTable:
     def __init__(self):
-        self.MAX = 100
-        self.arr = [None for i in range(self.MAX)]
+        self.MAX = 10
+        # instead of every element being "None" we will use an empty list
+        self.arr = [[] for i in range(self.MAX)]
+
 
     def get_hash(self, key):
         h = 0
@@ -33,17 +47,41 @@ class HashTable:
             h += ord(c)
         return h % self.MAX
 
+
     # this allows us to use indexing to call the value
     # ie "Hashtable[key] = value"
     def __setitem__(self, key, val):
         h = self.get_hash(key)
-        self.arr[h] = val
+
+        found = False
+        for idx, element in enumerate(self.arr[h]):
+            if len(element)==2 and element[0]==key:
+                # storing tuble, immutable
+                # find the array element then set the ith element to the new arr
+                self.arr[h][inx] = (key, val)
+                found = True
+                break
+
+        # if element doesnt exist add it
+        if not found:
+            self.arr[h].append((key, val))
+
 
     def __getitem__(self, key):
         h = self.get_hash(key)
-        return self.arr[h]
+        for element in self.arr[h]:
+            if element[0] == key:
+                return element[1]
 
 
+    def __delitem__(self, key):
+        h = self.get_hash(key)
+        for idx, element in enumerate(self.arr[h]):
+            if element[0] == key:
+                del self.arr[h][idx]
+
+# -------------------------------
+    # non pythonic way.
     def add(self, key, val):
         # get the "location" of the key with the ascii value
         h = self.get_hash(key)
@@ -55,14 +93,13 @@ class HashTable:
         h = self.get_hash(key)
         return self.arr[h]
 
-    def __delitem__(self, key):
-        h = self.get_hash(key)
-        self.arr[h] = None
+
 
 if __name__ == "__main__":
     ht = HashTable()
     print(ht.get_hash('march 6'))
-    ht.add('march 6', 130)
+    ht['march 6'] = 130
+    ht['march 17'] = 500
     print('-'*10)
     print(ht.arr)
     print(ht.get('march 6'))
@@ -70,6 +107,9 @@ if __name__ == "__main__":
     print(ht['march 7'])
     print('-'*10)
     print(ht.arr)
+    print('-'*10)
+    print(ht.arr)
+    print(ht['march 6'])
     del ht['march 6']
     print('-'*10)
     print(ht.arr)
